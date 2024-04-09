@@ -1,6 +1,6 @@
 # PIXI.js Demo
 
-A test project using pixi.js
+A test project using pixi.js.
 
 ## Usage
 

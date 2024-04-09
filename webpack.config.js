@@ -1,7 +1,12 @@
+// @ts-check
+
 const path = require("path");
 const CopyPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+/**
+ * @type {import('webpack').Configuration}
+ */
 module.exports = {
   entry: "./src/index.ts",
 
@@ -11,6 +16,7 @@ module.exports = {
     path: path.resolve(__dirname, "dist"),
     filename: "bundle.js",
     publicPath: "auto",
+    clean: true,
   },
 
   performance: { hints: false },
@@ -31,10 +37,10 @@ module.exports = {
 
   plugins: [
     new CopyPlugin({
-      patterns: [{ from: "public/assets/" }],
+      patterns: [{ from: "public/assets/", to: "assets" }],
     }),
     new HtmlWebpackPlugin({
-      template: "index.html",
+      template: "public/index.html",
       hash: true,
       minify: false,
     }),

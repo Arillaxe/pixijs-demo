@@ -1,6 +1,6 @@
 import * as PIXI from "pixi.js";
 import { sound } from "@pixi/sound";
-import { HEIGHT, TOP_PADDING, WIDTH } from "./consts";
+import { FIELD_COLS, FIELD_ROWS, HEIGHT, TOP_PADDING, WIDTH } from "./consts";
 import Game from "./Game";
 
 (async () => {
@@ -18,6 +18,8 @@ import Game from "./Game";
   await Promise.all(assetsPromises);
 
   sound.add("pickup", "assets/pickup.mp3");
+  sound.add("start", "assets/start.mp3");
+  sound.add("win", "assets/win.mp3");
 
   let background = PIXI.Sprite.from("assets/bg_game.png");
   background.width = WIDTH;
@@ -39,8 +41,8 @@ import Game from "./Game";
 
   const gems: PIXI.Sprite[][] = [];
 
-  for (let i = 0; i < 9; i++) {
-    for (let j = 0; j < 8; j++) {
+  for (let i = 0; i < FIELD_COLS; i++) {
+    for (let j = 0; j < FIELD_ROWS; j++) {
       const gem = PIXI.Sprite.from("assets/crystal_yellow.png");
       gem.scale = 0.6;
       gem.anchor = 0.5;
@@ -87,22 +89,34 @@ import Game from "./Game";
   scoreBarContainer.addChild(scoreText);
   app.stage.addChild(scoreBarContainer);
 
-  app.ticker.add(() => {
-    const { x, y } = Game.getCursorPosition();
-
+  const onCursorMove = (x: number, y: number) => {
     currentCell.x = -board.width / 2 + x * cellSize;
     currentCell.y = -board.height / 2 + y * cellSize;
+  };
 
+  const onDestroy = (x: number, y: number) => {
+    gems[x][y].visible = false;
+    sound.play("pickup");
     scoreText.text = Game.getScore();
+  };
 
-    const gameField = Game.getField();
+  const onStart = () => {
+    sound.play("start");
+  };
 
-    for (let i = 0; i < gameField.length; i++) {
-      for (let j = 0; j < gameField[i].length; j++) {
-        gems[i][j].visible = gameField[i][j];
-      }
-    }
-  });
+  const onWin = () => {
+    sound.play("win");
+  };
+
+  Game.onCursorMove(onCursorMove);
+  Game.onDestroy(onDestroy);
+  Game.onStart(onStart);
+  Game.onWin(onWin);
+
+  const { x, y } = Game.getCursorPosition();
+
+  currentCell.x = -board.width / 2 + x * cellSize;
+  currentCell.y = -board.height / 2 + y * cellSize;
 
   window.addEventListener("keydown", (e) => {
     switch (e.key) {
@@ -120,8 +134,9 @@ import Game from "./Game";
         break;
       case " ":
         Game.destroyAtCursorPosition();
-        sound.play("pickup");
         break;
     }
   });
+
+  Game.start();
 })();
